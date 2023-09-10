@@ -8,23 +8,35 @@ import (
 	"time"
 )
 
-var LongConnObj LongConn
+var LongConnObj *LongConn
+
+type Config struct {
+	WSURL string
+}
 
 type LongConn struct {
+	Config
 	Conn *websocket.Conn
 	send chan api_struct.Message
 }
 
-func (l LongConn) PushSendChanMessage(msg api_struct.Message) {
+func (l *LongConn) PushSendChanMessage(msg api_struct.Message) {
 	l.send <- msg
 }
 
-func (l LongConn) wsConn() {
+func (l *LongConn) WsConn() {
+	l.initBasicInfo()
 	l.heartbeat()
 	l.read()
+	l.write()
 }
 
-func (l LongConn) heartbeat() {
+func (l *LongConn) initBasicInfo() {
+	l.send = make(chan api_struct.Message, 10)
+	LongConnObj = l
+}
+
+func (l *LongConn) heartbeat() {
 	// heart beat
 	go func() {
 		tickerr := time.NewTicker(time.Second * 5)
@@ -33,6 +45,7 @@ func (l LongConn) heartbeat() {
 			select {
 			case <-tickerr.C:
 				if l.Conn != nil {
+					_ = l.Conn.SetWriteDeadline(time.Now().Add(time.Second * 10))
 					l.Conn.WriteMessage(websocket.PingMessage, nil)
 				}
 			}
@@ -40,14 +53,14 @@ func (l LongConn) heartbeat() {
 	}()
 }
 
-func (l LongConn) read() {
+func (l *LongConn) read() {
 	// read message
 	go func() {
 		for {
 			var err error
 			if l.Conn == nil {
 				l.Conn, _, err = websocket.DefaultDialer.Dial(
-					"ws://127.0.0.1:10040?userID=charlie", nil,
+					l.Config.WSURL, nil,
 				)
 				if err != nil {
 					panic(err)
@@ -56,11 +69,10 @@ func (l LongConn) read() {
 				if err != nil {
 					panic(err)
 				}
-				LongConnObj = l
+				LongConnObj.Conn = l.Conn
 			}
 			l.Conn.SetPongHandler(
 				func(appData string) error {
-					fmt.Println("pong", appData)
 					return nil
 				},
 			)
@@ -73,14 +85,14 @@ func (l LongConn) read() {
 	}()
 }
 
-func (l LongConn) write() {
+func (l *LongConn) write() {
 	// write message
 	go func() {
 		for {
 			select {
 			case message, ok := <-l.send:
-				// send message to server
-				if ok {
+				if l.Conn != nil && ok {
+					// send message to server
 					err := l.Conn.SetWriteDeadline(
 						time.Now().Add(
 							time.
@@ -88,12 +100,15 @@ func (l LongConn) write() {
 						),
 					)
 					if err != nil {
-
+						continue
 					}
 					req, _ := json.Marshal(message.Message)
-					l.Conn.WriteMessage(
+					err = l.Conn.WriteMessage(
 						websocket.BinaryMessage, req,
 					)
+					if err != nil {
+						continue
+					}
 				}
 			}
 		}
