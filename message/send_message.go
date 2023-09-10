@@ -1,17 +1,19 @@
 package message
 
 import (
-	"encoding/json"
 	"github.com/charlie-bit/go-chat-client/model/api_struct"
 	"github.com/charlie-bit/go-chat-client/pkg/constant"
+	"github.com/charlie-bit/go-chat-client/pkg/proto/msg"
 	"github.com/charlie-bit/go-chat-client/ws"
+	"google.golang.org/protobuf/proto"
 )
 
 func SendMessage(
-	s *api_struct.MsgStruct, sendID, recvID,
+	s *msg.MsgData, sendID, recvID,
 	groupID string,
 ) (*api_struct.MsgStruct, error) {
-	data, err := json.Marshal(s)
+	s.GroupID = groupID
+	data, err := proto.Marshal(s)
 	if err != nil {
 		return nil, err
 	}

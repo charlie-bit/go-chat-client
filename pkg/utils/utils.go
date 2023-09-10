@@ -3,6 +3,7 @@ package utils
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"encoding/json"
 	"math/rand"
 	"strconv"
 	"time"
@@ -41,4 +42,13 @@ func Int64ToString(i int64) string {
 // Get the current timestamp by Nano
 func GetCurrentTimestampByNano() int64 {
 	return time.Now().UnixNano()
+}
+
+func StructToJsonString(param interface{}) string {
+	dataType, err := json.Marshal(param)
+	if err != nil {
+		panic(err)
+	}
+	dataString := string(dataType)
+	return dataString
 }

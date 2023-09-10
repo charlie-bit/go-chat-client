@@ -2,6 +2,7 @@ package message
 
 import (
 	"github.com/charlie-bit/go-chat-client/model/api_struct"
+	"github.com/charlie-bit/go-chat-client/pkg/proto/msg"
 	"github.com/charlie-bit/go-chat-client/ws"
 	"reflect"
 	"testing"
@@ -10,7 +11,7 @@ import (
 
 func TestSendMessage(t *testing.T) {
 	type args struct {
-		s       *api_struct.MsgStruct
+		s       *msg.MsgData
 		sendID  string
 		recvID  string
 		groupID string
@@ -38,7 +39,7 @@ func TestSendMessage(t *testing.T) {
 		},
 	}
 	l.WsConn()
-	time.Sleep(time.Second * 5)
+	time.Sleep(time.Second * 3)
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {

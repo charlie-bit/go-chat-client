@@ -2,7 +2,6 @@ package ws
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/charlie-bit/go-chat-client/model/api_struct"
 	"github.com/gorilla/websocket"
 	"time"
@@ -80,7 +79,6 @@ func (l *LongConn) read() {
 			if err != nil {
 				panic(err)
 			}
-			fmt.Println(messageType, message)
 		}
 	}()
 }
@@ -89,9 +87,12 @@ func (l *LongConn) write() {
 	// write message
 	go func() {
 		for {
+			if l.Conn == nil {
+				continue
+			}
 			select {
 			case message, ok := <-l.send:
-				if l.Conn != nil && ok {
+				if ok {
 					// send message to server
 					err := l.Conn.SetWriteDeadline(
 						time.Now().Add(

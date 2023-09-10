@@ -1,0 +1,38 @@
+syntax = "proto3";
+package msg;
+option go_package = "chat_socket/pkg/proto/msg";
+
+service msg {
+  //发送消息
+  rpc SendMsg(SendMsgReq) returns(SendMsgResp);
+}
+
+message SendMsgReq{
+  MsgData msg = 1;
+}
+
+message SendMsgResp{
+  string serverMsgID = 1; // 服务端消息id
+  string clientMsgID = 2; // 客户端消息id
+  int64  sendTime = 3; // 消息时间
+}
+
+message MsgData {
+  string  sendID = 1;
+  string  recvID = 2;
+  string groupID = 3;
+  string clientMsgID = 4;
+  string serverMsgID = 5;
+  string  senderNickname = 7;
+  string  senderFaceURL = 8;
+  int32   sessionType = 9;
+  int32 msgFrom = 10;
+  int32 contentType = 11;
+  bytes content = 12;
+  int64 seq = 14;
+  int64 sendTime = 15;
+  int64 createTime = 16;
+  int32 status = 17;
+  bool isRead = 18;
+  string ex = 23;
+}
