@@ -75,7 +75,7 @@ func (l *LongConn) read() {
 					return nil
 				},
 			)
-			messageType, message, err := l.Conn.ReadMessage()
+			_, _, err = l.Conn.ReadMessage()
 			if err != nil {
 				panic(err)
 			}
